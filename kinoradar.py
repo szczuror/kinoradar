@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-import csv
+from imdb import IMDb # type: ignore
 from fuzzywuzzy import fuzz # type: ignore
 from imdb import IMDb # type: ignore
 import time
@@ -10,26 +10,42 @@ import re
 
 start_time = time.time()
 
-# Ścieżka do plików
-csv_file = 'watchlist.csv'
+# śćieżka do cache
 translations_file = 'translations.json'
 
 # Inicjalizacja obiektu IMDb
 ia = IMDb()
 
-# Funkcja do pobrania listy filmów z Letterboxd (z pliku CSV)
-def get_letterboxd_watchlist(csv_file):
+# Funkcja do pobrania listy filmów z Letterboxd na podstawie podanego username
+def get_letterboxd_watchlist(username):
     watchlist = []
-    with open(csv_file, mode='r', encoding='utf-8') as file:
-        reader = csv.reader(file)
-        
-        # Pominięcie nagłówka
-        next(reader)
-        
-        # Pobranie tytułów filmów (zazwyczaj w drugiej kolumnie)
-        for row in reader:
-            title = row[1]  # Zakładamy, że tytuł filmu znajduje się w drugiej kolumnie
+    page_number = 1
+
+    while True:
+        # pobieranie strony
+        url = f"https://letterboxd.com/{username}/watchlist/page/{page_number}/"
+        response = requests.get(url)
+
+        # Sprawdź, czy strona istnieje
+        if response.status_code != 200:
+            break
+
+        # Parsuj HTML
+        soup = BeautifulSoup(response.text, "html.parser")
+        films = soup.find_all("li", class_="poster-container")
+
+        # Jeśli nie ma filmów na stronie, zakończ
+        if not films:
+            break
+
+        # Dodaj tytuły filmów do watchlisty
+        for film in films:
+            title = film.find("img")["alt"]
             watchlist.append(title)
+
+        # Przejdź do następnej strony
+        page_number += 1
+
     return watchlist
 
 # Funkcja do pobrania listy filmów z Filmweb (z Warszawy)
@@ -44,7 +60,7 @@ def get_filmweb_movies():
         filmweb_movies = [link.get_text(strip=True) for link in movie_links]
         return filmweb_movies
     else:
-        print("Błąd podczas pobierania strony:", response.status_code)
+        print("Error fetching the page:", response.status_code)
         return []
 
 # Funkcja do załadowania przetłumaczonych tytułów z pliku
@@ -95,7 +111,6 @@ def translate_title_to_english(polish_title, translation_cache):
     translation_cache[polish_title] = polish_title
     return polish_title
 
-# Funkcja do porównywania tytułów z uwzględnieniem podobieństwa tekstu
 def compare_movies(watchlist, filmweb_movies, translation_cache):
     found_movies = []
 
@@ -119,11 +134,12 @@ def compare_movies(watchlist, filmweb_movies, translation_cache):
     return found_movies
 
 
-# Załadowanie cache tłumaczeń z pliku
+nick = input("Podaj nazwę konta: ")
+
 translation_cache = load_translation_cache(translations_file)
 
 # Pobranie list filmów
-letterboxd_watchlist = get_letterboxd_watchlist(csv_file)
+letterboxd_watchlist = get_letterboxd_watchlist(nick)
 filmweb_movies = get_filmweb_movies()
 
 # Porównanie tytułów
@@ -133,11 +149,13 @@ matched_movies = compare_movies(letterboxd_watchlist, filmweb_movies, translatio
 save_translation_cache(translation_cache, translations_file)
 
 # Wyświetlenie wyników
+
 print("\nFilmy z watchlisty, które są grane w kinach w Warszawie:")
+
 for match in matched_movies:
     #print(f"Letterboxd: {match[0]} - Filmweb {match[1]} (Podobieństwo: {match[2]}%)")
     print(f"{match[0]} - {match[2]}%")
 
 
-end_time = time.time()
+#end_time = time.time()
 #print(f"Execution time: {end_time - start_time:.6f} seconds")
