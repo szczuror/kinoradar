@@ -23,23 +23,19 @@ Automatically checks which movies from your Letterboxd watchlist are currently p
   ```
 
 ## 🚀 Quick Start
-1. Prepare your watchlist
-   
-Export your Letterboxd watchlist as CSV (correct file example):
-```bash
-  Date,Name,Year,Letterboxd URI
-  2024-09-27,The Taste of Things,2023,https://boxd.it/Arke
-```
-
-2. Install dependencies
+1. Install dependencies
 ```bash
  install requests beautifulsoup4 fuzzywuzzy imdbpy
 ```
-3. Run the script
+2. Run the script
 ```bash
  python3 kinoradar.py
 ```
-4. Sample output
+4. Specify the target user watchlist nickname
+```bash
+  Podaj nazwę konta: `nick`
+```
+5. Sample output
 ```bash
 Filmy z watchlisty, które są grane w kinach w Warszawie:
 Godfather - 100%
