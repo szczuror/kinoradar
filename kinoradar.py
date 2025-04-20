@@ -98,23 +98,18 @@ def translate_title_to_english(polish_title, translation_cache):
 # Funkcja do porównywania tytułów z uwzględnieniem podobieństwa tekstu
 def compare_movies(watchlist, filmweb_movies, translation_cache):
     found_movies = []
-    
-    # Translate all Filmweb movies once before starting the comparison
+
     translated_titles = {}
     for filmweb_movie in filmweb_movies:
-        # Check if the title is already in the cache, and if not, translate it
         if filmweb_movie not in translation_cache:
             translated_title = translate_title_to_english(filmweb_movie, translation_cache)
-            # Save the translation to the cache
             translation_cache[filmweb_movie] = translated_title
         else:
             translated_title = translation_cache[filmweb_movie]
         
         translated_titles[filmweb_movie] = translated_title
-        # Print each translated title immediately
         print(f"Translated: {filmweb_movie} -> {translated_title}")
     
-    # Now compare each watchlist movie to the translated Filmweb titles
     for watch_movie in watchlist:
         for filmweb_movie, translated_title in translated_titles.items():
             similarity = fuzz.ratio(watch_movie.lower(), translated_title.lower())
