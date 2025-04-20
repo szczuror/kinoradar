@@ -56,4 +56,5 @@ The program checks local translation cache first, and for new titles it searches
 - Depends on filmweb and IMDB websites structure
 - Possible mismatches as the translations are not perfect and sometimes not found (as they are not always in IMDB database)
 - Takes long time for translating, noticeable especially when user has a long watchlist\
-However, all of them are solvable:)
+  
+### However, all of them are solvable:)
