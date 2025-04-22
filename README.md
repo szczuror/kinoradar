@@ -16,6 +16,7 @@ Automatically checks which movies from your Letterboxd watchlist are currently p
 - Python 3.7+
 - Required packages:
   ```bash
+  python-Levenshtein
   requests
   beautifulsoup4
   fuzzywuzzy
@@ -25,7 +26,7 @@ Automatically checks which movies from your Letterboxd watchlist are currently p
 ## 🚀 Quick Start
 1. Install dependencies
 ```bash
- install requests beautifulsoup4 fuzzywuzzy imdbpy
+ pip install requests beautifulsoup4 fuzzywuzzy imdbpy python-Levenshtein
 ```
 2. Run the script
 ```bash
