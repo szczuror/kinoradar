@@ -1,0 +1,16 @@
+{
+  "Kino Muranów": {
+    "url": "https://kinomuranow.pl/repertuar/",
+    "selectors": {
+      "film_container": "div.film-block",
+      "title": "h2 a",
+      "screenings_container": "div.screening-dates",
+      "date": "span.day",
+      "time": "span.hours"
+    }
+  },
+
+  "Wisła" : {
+    "url": "https://www.novekino.pl/kina/wisla/repertuar.php#"
+  }
+}

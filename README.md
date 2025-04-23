@@ -30,7 +30,7 @@ Automatically checks which movies from your Letterboxd watchlist are currently p
 ```
 2. Run the script
 ```bash
- python3 kinoradar.py
+ python3 main.py
 ```
 4. Specify the target user watchlist nickname
 ```bash
