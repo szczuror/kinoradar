@@ -4,7 +4,7 @@ from classes.Movie import Movie
 from typing import List
 from collections import defaultdict
 
-def scrapeMuranow() -> List[Movie]:
+def scrape_muranow() -> List[Movie]:
     SRC = 'Kino Muranów'
     URL = "https://kinomuranow.pl/repertuar"
 
@@ -48,7 +48,7 @@ def scrapeMuranow() -> List[Movie]:
     return []
 
 # Przykład użycia
-if __name__ == "__main__":
-    movies = scrapeMuranow()
-    for movie in movies:
-        print(movie)
+# if __name__ == "__main__":
+#     movies = scrape_muranow()
+#     for movie in movies:
+#         print(movie)
