@@ -1,73 +1,54 @@
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime
-from typing import List
-import json
-import os
-from pathlib import Path
-
 from classes.Movie import Movie
+from typing import List
+from collections import defaultdict
 
+def scrapeMuranow() -> List[Movie]:
+    SRC = 'Kino Muranów'
+    URL = "https://kinomuranow.pl/repertuar"
 
-class MuranowScraper:
-    def __init__(self):
-        self.config = self._load_config()
-        self.base_url = self.config["url"]
-        self.headers = {'User-Agent': 'Mozilla/5.0'}
-
-    def _load_config(self):
-        config_path = Path(__file__).parent.parent / 'data' / 'cinemas.json'
-        with open(config_path, 'r', encoding='utf-8') as f:
-            return json.load(f)["Kino Muranów"]
-
-    def scrape(self) -> List[Movie]:
-        soup = self._get_html()
-        if not soup:
-            return []
-
-        movies = []
-        for film in soup.select(self.config["selectors"]["film_container"]):
-            title = self._clean_title(film.select_one(self.config["selectors"]["title"]).text)
-            screenings = self._get_screenings(film)
-
-            if screenings:
-                movies.append(Movie(
-                    title=title,
-                    source="Kino Muranów",
-                    nearest_screening_date=screenings[0]["date"],
-                    nearest_screening_time=screenings[0]["time"]
-                ))
-
-        return movies
-
-    def _get_html(self):
+    def fetch_page(url: str) -> BeautifulSoup:
         try:
-            response = requests.get(self.base_url, headers=self.headers, timeout=10)
+            response = requests.get(url)
             response.raise_for_status()
-            return BeautifulSoup(response.text, 'html.parser')
-        except Exception as e:
-            print(f"Error scraping Muranów: {e}")
+            return BeautifulSoup(response.text, "html.parser")
+        except requests.RequestException as e:
+            print(f"Błąd podczas pobierania strony: {e}")
             return None
 
-    def _get_screenings(self, film_element) -> list:
-        screenings = []
-        today = datetime.now()
+    def parse_movies(soup: BeautifulSoup) -> List[Movie]:
+        movies_dict = defaultdict(list)
+        days = soup.find_all("div", class_="calendar-seance-full__day")
 
-        for screening in film_element.select(self.config["selectors"]["screening_container"]):
-            date_str = screening.select_one(self.config["selectors"]["date"]).text.strip()
-            time_str = screening.select_one(self.config["selectors"]["time"]).text.strip()
+        for day in days:
+            if "calendar-seance-full__day--filled" in day.get("class", []):
+                date_str = extract_date(day)
+                movie_blocks = day.find_all("div", class_="movie-calendar-info")
 
-            try:
-                screening_date = datetime.strptime(f"{date_str} {time_str}", "%d.%m.%Y %H:%M")
-                if screening_date > today:
-                    screenings.append({
-                        "date": screening_date.strftime("%Y-%m-%d"),
-                        "time": screening_date.strftime("%H:%M")
-                    })
-            except ValueError:
-                continue
+                for block in movie_blocks:
+                    original_title = extract_title(block)
+                    if original_title:
+                        movies_dict[original_title].append(date_str)
 
-        return sorted(screenings, key=lambda x: x["date"])
+        return [Movie(original_title=title, show_dates=dates, source=SRC) for title, dates in movies_dict.items()]
 
-    def _clean_title(self, title: str) -> str:
-        return title.replace("\n", " ").strip()
+    def extract_date(day) -> str:
+        day_num = day.find("span", class_="cell-date-header__day-num").get_text(strip=True)
+        month = day.find("span", class_="cell-date-header__day-month").get_text(strip=True)
+        return f"{day_num} {month}"
+
+    def extract_title(block) -> str:
+        title_tag = block.find("h5", class_="movie-calendar-info__title")
+        return title_tag.get_text(strip=True) if title_tag else None
+
+    soup = fetch_page(URL)
+    if soup:
+        return parse_movies(soup)
+    return []
+
+# Przykład użycia
+if __name__ == "__main__":
+    movies = scrapeMuranow()
+    for movie in movies:
+        print(movie)
